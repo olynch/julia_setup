@@ -2,12 +2,25 @@
 
 JUPYTER_PORT=8888
 
+# This is where I have all my git repositories, so it's useful
+# to have access to this in the docker container. Change this to something
+# useful to you.
 SHARED_DIR_HOST=$HOME/g
 SHARED_DIR_DOCKER=/g
 
+# This is where I keep the volume that has everything that goes in /root
+# in the docker container. Either create this directory, or change it to
+# somewhere useful to you
 SAVED_ROOT_DIR=$HOME/s/docker-julia-home
 
-X11_ARGS="-v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY -h $HOSTNAME -v $HOME/.Xauthority:/root/.Xauthority"
+# If you don't want X11 support, change this to 0.
+ENABLE_X11=1
+if [[ ENABLE_X11==1 ]]
+then
+    X11_ARGS="-v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY -h $HOSTNAME -v $HOME/.Xauthority:/root/.Xauthority"
+else
+    X11_ARGS=
+fi
 
 CONTAINER_NAME=julia-tex
 
@@ -47,6 +60,11 @@ then
         $CONTAINER_NAME \
         $CMD"
 
-    xhost +local:root
+    if [[ ENABLE_X11==1 ]]
+    then
+        # Note, this is insecure for some reason?
+        # If you get pwned, don't blame me
+        xhost +local:root
+    fi
     exec $DOCKER_CMD
 fi
